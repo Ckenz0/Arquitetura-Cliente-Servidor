@@ -32,8 +32,9 @@ O contrato da API está em [server/openapi.yaml](server/openapi.yaml).
 ## Tecnologias e configuração
 
 Python, Flask e Waitress no backend; HTML, CSS e JavaScript no frontend.
-As dependências de execução estão em `server/requirements.txt`; as de
-validação estão em `requirements.txt`.
+As dependências de execução estão em `requirements.txt`, que referencia
+`server/requirements.txt`; as de validação estão em `requirements-dev.txt`.
+`startup.sh` inicia o backend WSGI em um processo com quatro threads.
 
 O backend usa `APP_ENV`, `SECRET_KEY` e `ALLOWED_ORIGINS`. A configuração
 pública do frontend fica em `client/config.js`. A identificação anônima usa
