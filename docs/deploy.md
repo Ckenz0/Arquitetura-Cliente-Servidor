@@ -17,6 +17,9 @@ Grupo de recursos: `livraria-entrelinhas`.
 Domínio atribuído ao frontend:
 `https://purple-rock-035da0010.3.azurestaticapps.net`.
 
+Domínio do backend:
+`https://entrelinhas-api-ckenz0-h7hkgaaxecbqezhn.brazilsouth-01.azurewebsites.net`.
+
 ## Consultar os domínios
 
 Comandos em Bash no Azure Cloud Shell, já autenticado:

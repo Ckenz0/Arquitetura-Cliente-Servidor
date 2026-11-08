@@ -28,8 +28,9 @@ URL e workflow de publicação.
 
 Consulte o [guia de deploy na Azure](docs/deploy.md).
 
-A API publicada responde em
-`https://entrelinhas-api-ckenz0-h7hkgaaxecbqezhn.brazilsouth-01.azurewebsites.net/api/health`.
+- [Frontend](https://purple-rock-035da0010.3.azurestaticapps.net).
+- [API](https://entrelinhas-api-ckenz0-h7hkgaaxecbqezhn.brazilsouth-01.azurewebsites.net/).
+- [Health check](https://entrelinhas-api-ckenz0-h7hkgaaxecbqezhn.brazilsouth-01.azurewebsites.net/api/health).
 
 ## Executar localmente
 
