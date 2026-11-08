@@ -1,0 +1,72 @@
+name: Validate and deploy Entrelinhas frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'scripts/package_frontend.py'
+      - 'tests/test_pacote_frontend.py'
+      - '.github/workflows/azure-static-web-apps.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: entrelinhas-frontend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Validate frontend packaging
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pytest tests/test_pacote_frontend.py -q
+          node --check client/config.js
+          node --check client/js/api.js
+          node --check client/js/app.js
+
+      - name: Check Azure configuration
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          AZURE_API_BASE_URL: ${{ vars.AZURE_API_BASE_URL }}
+        shell: bash
+        run: |
+          for name in AZURE_STATIC_WEB_APPS_API_TOKEN AZURE_API_BASE_URL; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing $name. See docs/deploy.md. Deployment is not configured."
+              exit 1
+            fi
+          done
+
+      - name: Prepare public assets
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          AZURE_API_BASE_URL: ${{ vars.AZURE_API_BASE_URL }}
+        run: python scripts/package_frontend.py --api-url "$AZURE_API_BASE_URL"
+
+      - name: Deploy frontend
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: dist/client
+          api_location: ''
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true

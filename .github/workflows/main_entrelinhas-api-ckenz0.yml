@@ -12,13 +12,14 @@ on:
       - 'pytest.ini'
       - '.python-version'
       - '.github/workflows/main_entrelinhas-api-ckenz0.yml'
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: entrelinhas-api-production
+  group: entrelinhas-api-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -52,22 +53,23 @@ jobs:
         run: python scripts/package_backend.py --output dist/backend-azure.zip
 
       - name: Check Azure configuration
-        id: azure-config
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_API_BASE_URL: ${{ vars.AZURE_API_BASE_URL }}
         shell: bash
         run: |
-          if [[ -n "$AZURE_CLIENT_ID" && -n "$AZURE_TENANT_ID" && -n "$AZURE_SUBSCRIPTION_ID" ]]; then
-            echo 'ready=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'ready=false' >> "$GITHUB_OUTPUT"
-            echo '::notice::Backend validated and packaged. Azure identity configuration is pending; deployment was skipped.'
-          fi
+          for name in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_API_BASE_URL; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing $name. See docs/deploy.md. Deployment is not configured."
+              exit 1
+            fi
+          done
 
       - name: Login to Azure
-        if: github.ref == 'refs/heads/main' && steps.azure-config.outputs.ready == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -75,9 +77,19 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy API
-        if: github.ref == 'refs/heads/main' && steps.azure-config.outputs.ready == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/webapps-deploy@v3
         with:
           app-name: entrelinhas-api-ckenz0
           package: dist/backend-azure.zip
           startup-command: bash startup.sh
+
+      - name: Verify public API health
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          AZURE_API_BASE_URL: ${{ vars.AZURE_API_BASE_URL }}
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-delay 10 \
+            --retry-all-errors --max-time 30 "${AZURE_API_BASE_URL%/}/api/health" \
+            | python -c 'import json, sys; assert json.load(sys.stdin) == {"status": "ok"}'

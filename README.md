@@ -20,6 +20,47 @@ Navegador ⇄ HTTP/JSON + Bearer ⇄ API Flask
 
 O contrato da API está em [server/openapi.yaml](server/openapi.yaml).
 
+## Deploy
+
+O deploy usa dois recursos independentes: Azure Static Web Apps para o
+frontend e Azure App Service Linux para a API. Cada parte tem sua própria
+URL e workflow de publicação.
+
+Consulte o [guia de deploy na Azure](docs/deploy.md).
+
+A API publicada responde em
+`https://entrelinhas-api-ckenz0-h7hkgaaxecbqezhn.brazilsouth-01.azurewebsites.net/api/health`.
+
+## Executar localmente
+
+Na raiz, com Python 3.12:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.venv\Scripts\python.exe -m server.app
+```
+
+Em outro terminal, inicie o cliente:
+
+```powershell
+.venv\Scripts\python.exe -m http.server 8080 --bind 127.0.0.1 --directory client
+```
+
+Abra `http://127.0.0.1:8080`. A API executa em
+`http://127.0.0.1:5000`; `client/config.js` preserva esses padrões locais.
+
+Para validar:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -m openapi_spec_validator server/openapi.yaml
+```
+
+Os testes de interface precisam do Chromium do Playwright ou do Chrome/Edge
+instalado. Para instalar o navegador do Playwright, execute
+`.venv\Scripts\python.exe -m playwright install chromium`.
+
 ## Funcionalidades
 
 - Catálogo, busca, filtros, detalhes e avaliações de livros.

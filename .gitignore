@@ -1,6 +1,7 @@
 .superpowers/
 superpowers/
-/docs/
+/docs/*
+!/docs/deploy.md
 AGENTS.md
 agents.md
 .agents/
