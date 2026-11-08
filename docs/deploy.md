@@ -88,11 +88,15 @@ Configure a identidade federada OIDC do backend com:
 
 - Issuer: `https://token.actions.githubusercontent.com`.
 - Audience: `api://AzureADTokenExchange`.
-- Subject: `repo:Ckenz0/Arquitetura-Cliente-Servidor:ref:refs/heads/main`.
+- Subject: `repo:Ckenz0@146033211/Arquitetura-Cliente-Servidor@1442157347:ref:refs/heads/main`.
 - Permissão de publicação no App Service, por exemplo **Website Contributor**
   no escopo desse recurso.
 
 O workflow já solicita `id-token: write`; OIDC não precisa de client secret.
+O subject usa os IDs imutáveis do proprietário e do repositório, conforme a
+configuração OIDC deste repositório. Consulte o prefixo atual com
+`gh api repos/Ckenz0/Arquitetura-Cliente-Servidor/actions/oidc/customization/sub`
+antes de configurar a credencial federada.
 O token do Static Web Apps pertence somente aos secrets do GitHub.
 Não coloque tokens ou `SECRET_KEY` no JavaScript ou em arquivos rastreados.
 
@@ -138,4 +142,5 @@ Criar os recursos não comprova que a aplicação foi publicada.
 - [Static Web Apps: configuração de build](https://learn.microsoft.com/en-us/azure/static-web-apps/build-configuration).
 - [App Service: deploy ZIP e build remoto](https://learn.microsoft.com/en-us/azure/app-service/deploy-zip).
 - [App Service: GitHub Actions e OIDC](https://learn.microsoft.com/en-us/azure/app-service/deploy-github-actions).
+- [GitHub: subjects OIDC com IDs imutáveis](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims).
 - [Diagnóstico de bloqueio por política](https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/error-policy-requestdisallowedbypolicy).
